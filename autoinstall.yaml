@@ -1,0 +1,34 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: ubuntu
+    username: dula
+    password: "$6$5IVHiePAeuiSTTsS$T48hGc7rNVYRjKX2dRvpQnamtUkeb.ejTEVho4Xss381f4hTxo.AvHuWvUmjl2kmtu0PRI5jvU1JZKV0boUgO1"
+  storage:
+    config:
+      - ptable: gpt
+        type: disk
+        id: nvme0n1
+        wipe: all
+        match:
+          size: largest
+      - device: nvme0n1
+        size: 512MiB
+        type: partition
+        id: boot_partition
+      - device: boot_partition
+        filesystem: ext4
+        mount: /boot
+      - device: nvme0n1
+        size: 20GiB # Adjust size as needed for the root partition
+        type: partition
+        id: root_partition
+      - device: root_partition
+        filesystem: ext4
+        mount: /
+        mount_options: [defaults]
+  late-commands:
+    - curtin in-target --target=/target apt-get update
+    - curtin in-target --target=/target apt-get -y install ufw
+    - curtin in-target --target=/target ufw enable
